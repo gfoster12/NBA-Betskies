@@ -1,4 +1,4 @@
-"""Model training utilities."""
+"""Model training utilities for multiple betting tasks."""
 
 from __future__ import annotations
 
@@ -16,33 +16,33 @@ from sklearn.preprocessing import StandardScaler
 from torch import optim
 
 from parlaylab.config import get_settings
-from parlaylab.data.feature_engineering import RANKING_FEATURES, build_team_rolling_features
 from parlaylab.db.database import get_session
 from parlaylab.db.models import ModelRun
 from parlaylab.models.nn_architectures import TabularMLP
+from parlaylab.models.task_registry import TASK_CONFIG, VALID_TASKS
 
 settings = get_settings()
 ARTIFACT_DIR = Path("artifacts")
 ARTIFACT_DIR.mkdir(exist_ok=True)
 
 
-def _prepare_dataset() -> Tuple[np.ndarray, np.ndarray, StandardScaler]:
-    features = build_team_rolling_features()
-    if features.empty:
+def _prepare_dataset(task: str) -> Tuple[np.ndarray, np.ndarray, StandardScaler]:
+    if task not in TASK_CONFIG:
+        raise ValueError(f"Unknown task '{task}'. Available: {list(TASK_CONFIG)}")
+    config = TASK_CONFIG[task]
+    dataset = config.builder()
+    if dataset.empty:
         raise RuntimeError("No games with scores available. Ingest historical data first.")
-    features = features.sort_values("date")
-    features["target"] = (features["off_rating"] > features["def_rating"]).astype(int)
-    X = features[RANKING_FEATURES].values
-    y = features["target"].values
+    dataset = dataset.sort_values(by="date_home" if "date_home" in dataset.columns else "date")
+    X = config.feature_fn(dataset)
+    y = dataset[config.target].values
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     return X_scaled, y, scaler
 
 
-def train_game_outcome_model(epochs: int = 20, lr: float = 1e-3) -> dict:
-    """Train a simple neural net to predict win probability."""
-
-    X, y, scaler = _prepare_dataset()
+def train_task(task: str, epochs: int = 20, lr: float = 1e-3) -> dict:
+    X, y, scaler = _prepare_dataset(task)
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, shuffle=False)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,7 +56,7 @@ def train_game_outcome_model(epochs: int = 20, lr: float = 1e-3) -> dict:
     y_val_t = torch.tensor(y_val, dtype=torch.float32).to(device)
 
     model.train()
-    for epoch in range(epochs):
+    for _ in range(epochs):
         optimizer.zero_grad()
         preds = model(X_train_t)
         loss = criterion(preds, y_train_t)
@@ -71,20 +71,16 @@ def train_game_outcome_model(epochs: int = 20, lr: float = 1e-3) -> dict:
         "brier": float(brier_score_loss(y_val, val_preds)),
         "accuracy": float(accuracy_score(y_val, (val_preds > 0.5).astype(int))),
     }
+    metrics_payload = {**metrics, "scaler_path": str(scaler_path), "input_dim": X.shape[1]}
 
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
-    model_path = ARTIFACT_DIR / f"game_outcome_{timestamp}.pt"
-    scaler_path = ARTIFACT_DIR / f"game_outcome_scaler_{timestamp}.bin"
+    model_path = ARTIFACT_DIR / f"{task}_{timestamp}.pt"
+    scaler_path = ARTIFACT_DIR / f"{task}_scaler_{timestamp}.bin"
     torch.save(model.state_dict(), model_path)
     dump(scaler, scaler_path)
 
     with get_session() as session:
-        run = ModelRun(
-            task="game_outcome",
-            version=timestamp,
-            metrics={**metrics, "scaler_path": str(scaler_path)},
-            artifact_path=str(model_path),
-        )
+        run = ModelRun(task=task, version=timestamp, metrics=metrics_payload, artifact_path=str(model_path))
         session.add(run)
 
     return {"model_path": str(model_path), "scaler_path": str(scaler_path), "metrics": metrics}
@@ -92,13 +88,12 @@ def train_game_outcome_model(epochs: int = 20, lr: float = 1e-3) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train ParlayLab models")
-    parser.add_argument("--task", default="game_outcome", choices=["game_outcome"], help="Task to train")
+    parser.add_argument("--task", default="game_outcome", choices=list(VALID_TASKS), help="Task to train")
     parser.add_argument("--epochs", type=int, default=20)
     args = parser.parse_args()
 
-    if args.task == "game_outcome":
-        result = train_game_outcome_model(epochs=args.epochs)
-        print(f"Trained game outcome model: {result}")
+    result = train_task(args.task, epochs=args.epochs)
+    print(f"Trained {args.task} model: {result}")
 
 
 if __name__ == "__main__":

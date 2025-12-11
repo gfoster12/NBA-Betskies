@@ -19,7 +19,7 @@ def _parlay() -> ParlayRecommendation:
         model_prob=0.55,
         edge=0.10,
         game_id=101,
-        team_tag="game_101",
+        team_id=101,
     )
     return ParlayRecommendation(
         name="Test Parlay",

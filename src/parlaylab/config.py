@@ -31,10 +31,16 @@ class Settings(BaseSettings):
     default_bankroll: float = Field(default=1000.0)
     kelly_fraction: float = Field(default=0.25, ge=0.0, le=1.0)
     edge_threshold: float = Field(default=0.05, ge=-1.0, le=1.0)
+    max_correlation_score: float = Field(default=0.8, ge=0.0, le=5.0)
+    correlation_penalty_weight: float = Field(default=0.25, ge=0.0, le=1.0)
     scheduler_run_hour: int = Field(default=9, ge=0, le=23)
 
     slack_webhook_url: Optional[str] = None
     notification_mode: Literal["email", "sms", "both"] = "email"
+    twilio_account_sid: Optional[str] = Field(default=None, validation_alias="TWILIO_ACCOUNT_SID")
+    twilio_auth_token: Optional[str] = Field(default=None, validation_alias="TWILIO_AUTH_TOKEN")
+    twilio_from_number: Optional[str] = Field(default=None, validation_alias="TWILIO_FROM_NUMBER")
+    sms_rate_limit_per_minute: int = Field(default=30, ge=0)
 
 
 @lru_cache(maxsize=1)

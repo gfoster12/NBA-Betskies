@@ -39,6 +39,8 @@ class Bet(Base):
     game_id: Mapped[int] = mapped_column(ForeignKey("games.id"), nullable=False)
     market_type: Mapped[str] = mapped_column(String(64), nullable=False)
     selection: Mapped[str] = mapped_column(String(255), nullable=False)
+    team_id: Mapped[Optional[int]] = mapped_column(Integer)
+    player_id: Mapped[Optional[int]] = mapped_column(Integer)
     sportsbook: Mapped[str] = mapped_column(String(64), nullable=False)
     american_odds: Mapped[int] = mapped_column(Integer, nullable=False)
     implied_prob: Mapped[float] = mapped_column(Float, nullable=False)

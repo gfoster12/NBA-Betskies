@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Tuple
 
 import numpy as np
+import pandas as pd
 import torch
 from joblib import load
 from sqlalchemy import select
 
-from parlaylab.data.feature_engineering import RANKING_FEATURES, build_team_rolling_features
+from parlaylab.data.feature_engineering import RANKING_FEATURES, build_matchup_dataset, build_player_prop_dataset
 from parlaylab.db.database import get_session
 from parlaylab.db.models import ModelRun
 from parlaylab.models.nn_architectures import TabularMLP
+from parlaylab.models.task_registry import TASK_CONFIG
 
 
 def _latest_run(task: str) -> ModelRun | None:
@@ -33,7 +35,8 @@ def load_model(task: str = "game_outcome") -> tuple[TabularMLP, object]:
     if not artifact_path.exists() or not scaler_path.exists():
         raise FileNotFoundError("Model artifacts missing. Retrain the model.")
 
-    model = TabularMLP(input_dim=len(RANKING_FEATURES))
+    input_dim = int(run.metrics.get("input_dim", len(RANKING_FEATURES)))
+    model = TabularMLP(input_dim=input_dim)
     state_dict = torch.load(artifact_path, map_location="cpu")
     model.load_state_dict(state_dict)
     model.eval()
@@ -41,17 +44,57 @@ def load_model(task: str = "game_outcome") -> tuple[TabularMLP, object]:
     return model, scaler
 
 
-def predict_team_strengths() -> Dict[int, float]:
-    """Compute win probabilities for each team relative to league average."""
-
-    features = build_team_rolling_features()
-    if features.empty:
-        return {}
-    model, scaler = load_model()
-    X = scaler.transform(features[RANKING_FEATURES].values)
+def _run_task(task: str) -> Tuple["pd.DataFrame", np.ndarray]:
+    config = TASK_CONFIG.get(task)
+    if not config:
+        raise ValueError(f"Unknown task '{task}'")
+    dataset = config.builder()
+    if dataset.empty:
+        return dataset, np.array([])
+    model, scaler = load_model(task)
+    X = config.feature_fn(dataset)
+    X_scaled = scaler.transform(X)
     with torch.no_grad():
-        probs = model(torch.tensor(X, dtype=torch.float32)).numpy()
-    features = features.copy()
-    features["prob"] = probs
-    latest = features.sort_values("date").groupby("team_id").tail(1)
-    return dict(zip(latest["team_id"], latest["prob"]))
+        probs = model(torch.tensor(X_scaled, dtype=torch.float32)).numpy()
+    return dataset, probs
+
+
+def predict_matchup_probabilities(task: str = "game_outcome") -> Dict[int, Dict[str, float]]:
+    """Return probabilities for matchup-style tasks keyed by game ID."""
+
+    dataset, probs = _run_task(task)
+    if dataset.empty:
+        return {}
+    dataset = dataset.copy()
+    dataset["model_prob"] = probs
+    predictions: Dict[int, Dict[str, float]] = {}
+    for _, row in dataset.iterrows():
+        predictions[int(row["game_id"])] = {
+            "home_team_id": int(row["team_id_home"]),
+            "away_team_id": int(row["team_id_away"]),
+            "home_prob": float(row["model_prob"]),
+            "away_prob": float(1 - row["model_prob"]),
+        }
+    return predictions
+
+
+def predict_player_points_probabilities() -> Dict[int, float]:
+    """Return star-prop proxy probabilities keyed by team ID."""
+
+    dataset, probs = _run_task("player_points")
+    if dataset.empty:
+        return {}
+    dataset = dataset.copy()
+    dataset["model_prob"] = probs
+    return dict(zip(dataset["team_id"], dataset["model_prob"]))
+
+
+def predict_team_strengths() -> Dict[int, float]:
+    """Backward-compatible alias for per-team win probabilities."""
+
+    matchup_preds = predict_matchup_probabilities("game_outcome")
+    results: Dict[int, float] = {}
+    for data in matchup_preds.values():
+        results[data["home_team_id"]] = data["home_prob"]
+        results[data["away_team_id"]] = data["away_prob"]
+    return results

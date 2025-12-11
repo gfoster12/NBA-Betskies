@@ -17,6 +17,7 @@ src/parlaylab/models/__init__.py
 src/parlaylab/models/evaluation.py
 src/parlaylab/models/inference.py
 src/parlaylab/models/nn_architectures.py
+src/parlaylab/models/task_registry.py
 src/parlaylab/models/training.py
 src/parlaylab/notifications/__init__.py
 src/parlaylab/notifications/email_backend.py
@@ -34,4 +35,5 @@ src/parlaylab_nba.egg-info/requires.txt
 src/parlaylab_nba.egg-info/top_level.txt
 tests/test_feature_engineering.py
 tests/test_llm_agent.py
+tests/test_notifications.py
 tests/test_parlay_engine.py
