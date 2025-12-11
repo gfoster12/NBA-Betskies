@@ -260,12 +260,25 @@ with st.sidebar:
     )
     risk = st.slider("Risk appetite", 0.1, 1.0, 0.5, help="Higher risk → larger Kelly fraction")
     max_legs = st.slider("Max parlay legs", 2, 5, 3)
+
+    st.markdown("### Admin Controls")
     admin_password = st.text_input("Admin password", type="password")
     admin_mode = admin_password == settings.admin_password
-    if st.button("Run daily pipeline now"):
-        with st.spinner("Ingesting slate, building parlays, and sending notifications..."):
-            result = run_daily_job(slate_date)
-        st.success(f"Daily job complete: {result}")
+    if admin_mode:
+        if st.button("Run Daily Parlay Job Now"):
+            with st.spinner("Running daily parlay job..."):
+                try:
+                    run_daily_job(slate_date)
+                except Exception as exc:  # pragma: no cover - surface errors nicely
+                    st.error(
+                        "Daily job failed. Check API keys, network connectivity, "
+                        "or Balldontlie API status."
+                    )
+                    st.exception(exc)
+                else:
+                    st.success("Daily job completed successfully.")
+    else:
+        st.caption("Enter the admin password to unlock daily job controls.")
 
 # ----- Page Layout ------------------------------------------------------------
 col_main, col_right = st.columns([0.62, 0.38], gap="large")
