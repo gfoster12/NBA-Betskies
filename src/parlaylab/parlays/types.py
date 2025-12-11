@@ -18,8 +18,9 @@ class BetLeg:
     model_prob: float
     edge: float
     game_id: int
-    team_tag: str
-    player_tag: str | None = None
+    team_id: int | None = None
+    player_id: int | None = None
+    tags: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -33,3 +34,4 @@ class ParlayRecommendation:
     suggested_stake: float
     rationale: str = ""
     tags: dict[str, str] = field(default_factory=dict)
+    correlation_score: float = 0.0

@@ -7,12 +7,21 @@
 - Contextual information (spread/total odds, travel, rest) can be merged at ingestion time for future iterations.
 
 ## Training process
-1. **Data prep** – `models.training._prepare_dataset()` loads engineered features, sorts by date to avoid leakage, and splits into train/validation segments.
+1. **Data prep** – `models.task_registry` defines builders for each task:
+   - `build_matchup_dataset` merges home/away rolling stats and produces labels for `game_outcome`, `spread_cover`, and `total_points`.
+   - `build_player_prop_dataset` approximates star-level props from team production for the `player_points` task (ready to swap with true player features later).
+   Each dataset is sorted chronologically to limit leakage.
 2. **Scaling** – `StandardScaler` normalizes numeric columns; the fitted scaler is persisted next to the model artifact.
 3. **Architecture** – `nn_architectures.TabularMLP` (3 hidden layers with BatchNorm, Dropout, ReLU) produces win-probability estimates via sigmoid outputs.
 4. **Optimization** – Adam optimizer, BCE loss, configurable epochs/learning rate; uses GPU if available.
 5. **Metrics & logging** – Accuracy, log loss, Brier score captured and stored in the `ModelRun` table together with artifact paths and timestamps. Calibration helpers live in `models/evaluation.py`.
-6. **Artifacts** – Saved under `artifacts/game_outcome_<timestamp>.pt` plus matching scaler file. Metadata enables version pinning for production inference.
+6. **Artifacts** – Saved under `artifacts/<task>_<timestamp>.pt` plus matching scaler file. Metadata (scaler path, input dimension, metrics) enables version pinning for production inference.
+
+### Supported tasks
+- `game_outcome`: probability the home team wins.
+- `spread_cover`: probability the home team beats the spread proxy.
+- `total_points`: probability the combined score clears a configurable total (currently 220 as a placeholder).
+- `player_points`: star-prop surrogate predicting if a featured player exceeds the configured points threshold (25 by default).
 
 ## Continuous learning
 - `scheduling/jobs.run_daily_job` ingests the latest games/odds and (optionally) triggers fine-tuning/retraining.

@@ -51,10 +51,14 @@ def _upsert_bet(session, game_id: int, data: dict) -> Bet:
     selection = data.get("selection", "line")
     american_odds = int(data.get("american_odds", 100))
     edge = data.get("edge", 0.0)
+    team_id = data.get("team_id") or (data.get("team") or {}).get("id")
+    player_id = data.get("player_id") or (data.get("player") or {}).get("id")
     bet = Bet(
         game_id=game_id,
         market_type=market,
         selection=selection,
+        team_id=team_id,
+        player_id=player_id,
         sportsbook=data.get("sportsbook", "unknown"),
         american_odds=american_odds,
         implied_prob=american_to_implied(american_odds),

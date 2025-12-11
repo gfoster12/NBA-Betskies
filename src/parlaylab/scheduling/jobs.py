@@ -31,8 +31,9 @@ def _bet_to_leg(bet: Bet) -> BetLeg:
         model_prob=bet.model_prob,
         edge=bet.edge,
         game_id=bet.game_id,
-        team_tag=f"game_{bet.game_id}",
-        player_tag=None,
+        team_id=bet.team_id,
+        player_id=bet.player_id,
+        tags={"book": bet.sportsbook},
     )
 
 

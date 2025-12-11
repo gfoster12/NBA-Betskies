@@ -43,18 +43,29 @@ def kelly_stake(prob: float, decimal_odds: float, bankroll: float, fraction: flo
     return bankroll * kelly * fraction
 
 
-def correlation_safe(legs: List[BetLeg]) -> bool:
-    seen_games: set[int] = set()
-    seen_players: set[str] = set()
-    for leg in legs:
-        if leg.game_id in seen_games:
-            return False
-        seen_games.add(leg.game_id)
-        if leg.player_tag:
-            if leg.player_tag in seen_players:
-                return False
-            seen_players.add(leg.player_tag)
-    return True
+def pairwise_correlation(a: BetLeg, b: BetLeg) -> float:
+    score = 0.0
+    if a.game_id == b.game_id:
+        score += 0.4
+    if a.team_id and b.team_id and a.team_id == b.team_id:
+        score += 0.25
+    if a.player_id and b.player_id and a.player_id == b.player_id:
+        score += 0.5
+    if a.market_type == b.market_type and a.game_id == b.game_id:
+        score += 0.1
+    return min(score, 1.0)
+
+
+def combination_correlation_score(legs: List[BetLeg]) -> float:
+    score = 0.0
+    for leg_a, leg_b in itertools.combinations(legs, 2):
+        score += pairwise_correlation(leg_a, leg_b)
+    return score
+
+
+def apply_correlation_penalty(prob: float, corr_score: float) -> float:
+    penalty = min(corr_score * settings.correlation_penalty_weight, 0.9)
+    return max(prob * (1 - penalty), 0.0)
 
 
 def build_parlays(
@@ -75,21 +86,28 @@ def build_parlays(
     parlays: List[ParlayRecommendation] = []
     for r in range(2, max_legs + 1):
         for combo in itertools.combinations(filtered, r):
-            if not correlation_safe(list(combo)):
+            legs = list(combo)
+            corr_score = combination_correlation_score(legs)
+            if corr_score > settings.max_correlation_score:
                 continue
-            prob = parlay_probability(combo)
-            decimal_odds = combine_odds(combo)
+            base_prob = parlay_probability(legs)
+            prob = apply_correlation_penalty(base_prob, corr_score)
+            if prob <= 0:
+                continue
+            decimal_odds = combine_odds(legs)
             stake = max(kelly_stake(prob, decimal_odds, bankroll, kelly_fraction), 5.0)
             ev = expected_value(prob, decimal_odds, stake)
             parlays.append(
                 ParlayRecommendation(
                     name=f"{r}-Leg Parlay",
                     slate_date=slate_date,
-                    legs=list(combo),
+                    legs=legs,
                     total_odds=decimal_odds,
                     hit_probability=prob,
                     expected_value=ev,
                     suggested_stake=stake,
+                    tags={"base_prob": f"{base_prob:.3f}"},
+                    correlation_score=corr_score,
                 )
             )
     parlays.sort(key=lambda p: (p.expected_value, p.hit_probability), reverse=True)

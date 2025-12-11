@@ -9,7 +9,8 @@ ParlayLab NBA is split into cohesive layers that can be independently iterated:
 
 2. **Modeling layer (`parlaylab.models`)**
    - `nn_architectures.py` hosts PyTorch modules (currently a tabular MLP) that power probability estimation.
-   - `training.py` trains tasks (game outcome baseline), logs metrics in `ModelRun`, and stores artifacts under `artifacts/` with timestamps.
+- `task_registry.py` centralizes dataset builders/feature transforms for game outcome, spreads, totals, and player props.
+- `training.py` trains each registered task, logs metrics in `ModelRun`, and stores artifacts under `artifacts/` with timestamps.
    - `inference.py` reloads the latest artifacts to generate per-team strength estimates; `evaluation.py` centralizes metric/calibration utilities.
 
 3. **Parlay intelligence (`parlaylab.parlays`)**

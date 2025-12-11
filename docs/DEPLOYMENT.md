@@ -23,7 +23,7 @@
 
 ## Notifications & credentials
 - Email backend uses generic SMTP with STARTTLS; for production configure a reliable provider (SES, SendGrid) and rotate passwords regularly.
-- `sms_backend.py` is a logging stub. Swap with Twilio/Vonage by following the same interface (implement `send(body, recipients)`).
+- SMS backend ships with Twilio support. Set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, and optionally tune `SMS_RATE_LIMIT_PER_MINUTE` to respect carrier policies.
 
 ## Scalability considerations
 - Replace SQLite with Postgres by setting `DATABASE_URL` accordingly (SQLAlchemy models are portable).

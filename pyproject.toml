@@ -17,6 +17,7 @@ dependencies = [
     "torch>=2.2",
     "streamlit>=1.39",
     "openai>=1.12",
+    "twilio>=9.2",
     "python-dotenv>=1.0",
     "matplotlib>=3.8",
     "plotly>=5.18",
