@@ -4,6 +4,7 @@
 1. Copy `.env.example` → `.env`
 2. Fill in real values for the required keys:
    - `BALLDONTLIE_API_KEY` (data ingestion and odds from BallDontLie)
+   - `PARLAYLAB_API_KEY` (protects FastAPI endpoints; use X-API-Key header)
 3. Optional notifier settings (SMTP + Twilio) are used by the notification service and daily scheduler.
 4. Keep `.env` out of Git (`.gitignore` already ignores `.env`/`*.env`).
 
@@ -11,6 +12,7 @@
 1. Go to **Settings → Secrets and variables → Actions**
 2. Create repository secrets with **exact** names:
    - `BALLDONTLIE_API_KEY`
+   - `PARLAYLAB_API_KEY`
    - `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_FROM`
    - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`
 3. Set each value to the raw credential (no quotes, no `KEY=` prefix).

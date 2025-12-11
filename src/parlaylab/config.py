@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     twilio_auth_token: str | None = Field(default=None, validation_alias="TWILIO_AUTH_TOKEN")
     twilio_from_number: str | None = Field(default=None, validation_alias="TWILIO_FROM_NUMBER")
     sms_rate_limit_per_minute: int = Field(default=30, ge=0)
+    parlaylab_api_key: str = Field(default="", validation_alias="PARLAYLAB_API_KEY")
 
 
 @lru_cache(maxsize=1)
@@ -57,7 +58,8 @@ def get_balldontlie_api_key() -> str:
     key = os.getenv("BALLDONTLIE_API_KEY") or get_settings().balldontlie_api_key
     if not key:
         raise RuntimeError(
-            "BALLDONTLIE_API_KEY is not configured. Set it in .env for local dev or as a GitHub secret."
+            "BALLDONTLIE_API_KEY is not configured. "
+            "Set it in .env for local dev or as a GitHub secret."
         )
     return key
 
@@ -80,3 +82,12 @@ def get_twilio_settings() -> dict[str, str | None]:
         "auth_token": settings.twilio_auth_token,
         "from_number": settings.twilio_from_number,
     }
+
+
+def get_api_access_key() -> str:
+    key = os.getenv("PARLAYLAB_API_KEY") or get_settings().parlaylab_api_key
+    if not key:
+        raise RuntimeError(
+            "PARLAYLAB_API_KEY is not configured. Set it in your environment or GitHub secrets."
+        )
+    return key

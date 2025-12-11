@@ -73,6 +73,7 @@ Settings live in `parlaylab/config.py` (Pydantic). Key knobs:
 - `MAX_CORRELATION_SCORE`, `CORRELATION_PENALTY_WEIGHT` for overlap penalties.
 - Notification mode + SMTP credentials.
 - Twilio SMS keys (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`) + `SMS_RATE_LIMIT_PER_MINUTE`.
+- `PARLAYLAB_API_KEY` for securing the FastAPI endpoints (use the `X-API-Key` header).
 - Database URL (SQLite default, Postgres-ready).
 
 Refer to the docs for extensibility ideas such as richer correlation modeling, additional prop markets, or production notification providers (Twilio, SES, etc.).
