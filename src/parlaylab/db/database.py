@@ -6,6 +6,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from parlaylab.db.models import Base
 
 from parlaylab.config import get_settings
 
@@ -27,3 +28,14 @@ def get_session() -> Session:
         raise
     finally:
         session.close()
+
+def init_db() -> None:
+    """
+    Create all database tables if they do not already exist.
+
+    This imports parlaylab.db.models to ensure all ORM models
+    are registered on Base.metadata before create_all() is called.
+    """
+    import parlaylab.db.models  # noqa: F401
+
+    Base.metadata.create_all(bind=engine)
