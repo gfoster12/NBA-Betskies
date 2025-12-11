@@ -20,8 +20,6 @@ class Settings(BaseSettings):
     database_url: AnyUrl | str = Field(default="sqlite:///./parlaylab.db")
 
     balldontlie_api_key: str = Field(default="", validation_alias="BALLDONTLIE_API_KEY")
-    openai_api_key: str = Field(default="", validation_alias="OPENAI_API_KEY")
-    openai_model: str = Field(default="gpt-5.1-pro", validation_alias="OPENAI_MODEL")
 
     email_host: str = Field(default="smtp.example.com")
     email_port: int = Field(default=587)
@@ -60,17 +58,6 @@ def get_balldontlie_api_key() -> str:
     if not key:
         raise RuntimeError(
             "BALLDONTLIE_API_KEY is not configured. Set it in .env for local dev or as a GitHub secret."
-        )
-    return key
-
-
-def get_openai_api_key() -> str:
-    """Return the OpenAI API key or raise a helpful error."""
-
-    key = os.getenv("OPENAI_API_KEY") or get_settings().openai_api_key
-    if not key:
-        raise RuntimeError(
-            "OPENAI_API_KEY is not configured. Set it in .env for local dev or as a GitHub secret."
         )
     return key
 

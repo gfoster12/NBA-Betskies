@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
       EMAIL_USER: ${{ secrets.EMAIL_USER }}

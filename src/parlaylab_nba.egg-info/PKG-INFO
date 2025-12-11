@@ -14,8 +14,6 @@ Requires-Dist: SQLAlchemy>=2.0
 Requires-Dist: alembic>=1.13
 Requires-Dist: scikit-learn>=1.5
 Requires-Dist: torch>=2.2
-Requires-Dist: streamlit>=1.39
-Requires-Dist: openai>=1.12
 Requires-Dist: twilio>=9.2
 Requires-Dist: python-dotenv>=1.0
 Requires-Dist: matplotlib>=3.8
@@ -32,7 +30,7 @@ Requires-Dist: ruff>=0.4; extra == "dev"
 
 # ParlayLab NBA
 
-ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and distributes daily picks via Streamlit dashboards, notifications, and marketing content powered by GPT-5.1.
+ParlayLab NBA is a backend-focused sports analytics platform that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and distributes daily picks via notifications and API integrations.
 
 > **Responsible gaming:** This is an analytics tool for educational/entertainment use. Wager only what you can afford to lose and follow local laws (18+).
 
@@ -40,9 +38,8 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
 - Automated ingestion of teams/games/odds with rolling feature engineering stored in SQLite (swap-ready for Postgres).
 - Hybrid ML stack (PyTorch tabular MLP + scikit-learn utilities) with daily retraining hooks, metrics logging, and artifact persistence across moneyline/spread/total/player-prop tasks.
 - Parlay engine with correlation filters, EV + fractional Kelly bankroll sizing, and flagship/alternative outputs.
-- Streamlit dashboard surfacing daily picks, historical performance, interactive parlay builder, subscriber management, and IG marketing agent.
+- FastAPI backend exposing health, parlay generation, and stats endpoints (ready for GPT Actions).
 - Notification layer with SMTP email + Twilio SMS (rate limited) plus documented cron-style scheduler.
-- OpenAI Chat Completions integration for explanations and Instagram content (responsible gambling reminders included).
 - Tests, docs, GitHub Actions CI, and typed config.
 
 ## Quickstart
@@ -54,8 +51,6 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
    ```
 2. **Environment variables** – copy `.env.example` to `.env` and fill in:
    - `BALLDONTLIE_API_KEY` *(GOAT subscription; never commit this value)*
-   - `OPENAI_API_KEY`
-   - `OPENAI_MODEL` (default `gpt-5.1-pro`)
    - SMTP settings (`EMAIL_*`), `ADMIN_PASSWORD`, `DATABASE_URL`, etc.
 3. **Initialize DB**
    ```bash
@@ -72,9 +67,9 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
    python -m parlaylab.models.training --task total_points --epochs 30
    python -m parlaylab.models.training --task player_points --epochs 30
    ```
-6. **Run Streamlit app**
+6. **Run the API server**
    ```bash
-   streamlit run app/streamlit_app.py
+   python -m parlaylab.api.main  # wraps uvicorn parlaylab.api.server:app
    ```
 7. **Daily job (scheduler/cron)**
    ```bash
