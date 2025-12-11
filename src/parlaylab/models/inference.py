@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,7 +10,9 @@ import torch
 from joblib import load
 from sqlalchemy import select
 
-from parlaylab.data.feature_engineering import RANKING_FEATURES, build_matchup_dataset, build_player_prop_dataset
+from parlaylab.data.feature_engineering import (
+    RANKING_FEATURES,
+)
 from parlaylab.db.database import get_session
 from parlaylab.db.models import ModelRun
 from parlaylab.models.nn_architectures import TabularMLP
@@ -44,7 +45,7 @@ def load_model(task: str = "game_outcome") -> tuple[TabularMLP, object]:
     return model, scaler
 
 
-def _run_task(task: str) -> Tuple["pd.DataFrame", np.ndarray]:
+def _run_task(task: str) -> tuple[pd.DataFrame, np.ndarray]:
     config = TASK_CONFIG.get(task)
     if not config:
         raise ValueError(f"Unknown task '{task}'")
@@ -59,7 +60,7 @@ def _run_task(task: str) -> Tuple["pd.DataFrame", np.ndarray]:
     return dataset, probs
 
 
-def predict_matchup_probabilities(task: str = "game_outcome") -> Dict[int, Dict[str, float]]:
+def predict_matchup_probabilities(task: str = "game_outcome") -> dict[int, dict[str, float]]:
     """Return probabilities for matchup-style tasks keyed by game ID."""
 
     dataset, probs = _run_task(task)
@@ -67,7 +68,7 @@ def predict_matchup_probabilities(task: str = "game_outcome") -> Dict[int, Dict[
         return {}
     dataset = dataset.copy()
     dataset["model_prob"] = probs
-    predictions: Dict[int, Dict[str, float]] = {}
+    predictions: dict[int, dict[str, float]] = {}
     for _, row in dataset.iterrows():
         predictions[int(row["game_id"])] = {
             "home_team_id": int(row["team_id_home"]),
@@ -78,7 +79,7 @@ def predict_matchup_probabilities(task: str = "game_outcome") -> Dict[int, Dict[
     return predictions
 
 
-def predict_player_points_probabilities() -> Dict[int, float]:
+def predict_player_points_probabilities() -> dict[int, float]:
     """Return star-prop proxy probabilities keyed by team ID."""
 
     dataset, probs = _run_task("player_points")
@@ -86,14 +87,14 @@ def predict_player_points_probabilities() -> Dict[int, float]:
         return {}
     dataset = dataset.copy()
     dataset["model_prob"] = probs
-    return dict(zip(dataset["team_id"], dataset["model_prob"]))
+    return dict(zip(dataset["team_id"], dataset["model_prob"], strict=False))
 
 
-def predict_team_strengths() -> Dict[int, float]:
+def predict_team_strengths() -> dict[int, float]:
     """Backward-compatible alias for per-team win probabilities."""
 
     matchup_preds = predict_matchup_probabilities("game_outcome")
-    results: Dict[int, float] = {}
+    results: dict[int, float] = {}
     for data in matchup_preds.values():
         results[data["home_team_id"]] = data["home_prob"]
         results[data["away_team_id"]] = data["away_prob"]

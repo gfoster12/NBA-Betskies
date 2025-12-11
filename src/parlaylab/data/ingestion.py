@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date, datetime, timedelta
-from typing import Iterable
 
 from sqlalchemy import select
 
@@ -34,7 +34,9 @@ def sync_historical_data(start_season: int, end_season: int) -> int:
                 for payload in client.get_games(current):
                     game = session.get(Game, payload["id"]) or Game(id=payload["id"])
                     game.season = payload["season"]
-                    game.date = datetime.fromisoformat(payload["date"].replace("Z", "+00:00")).date()
+                    game.date = datetime.fromisoformat(
+                        payload["date"].replace("Z", "+00:00")
+                    ).date()
                     game.status = payload.get("status", "scheduled")
                     game.home_team_id = payload["home_team"]["id"]
                     game.away_team_id = payload["visitor_team"]["id"]
@@ -78,7 +80,9 @@ def sync_daily(target_date: date) -> dict:
         for payload in games:
             game = session.get(Game, payload["id"]) or Game(id=payload["id"])
             game.season = payload["season"]
-            game.date = datetime.fromisoformat(payload["date"].replace("Z", "+00:00")).date()
+            game.date = datetime.fromisoformat(
+                payload["date"].replace("Z", "+00:00")
+            ).date()
             game.status = payload.get("status", "scheduled")
             game.home_team_id = payload["home_team"]["id"]
             game.away_team_id = payload["visitor_team"]["id"]
@@ -90,7 +94,7 @@ def sync_daily(target_date: date) -> dict:
             odds_payload = client.get_betting_odds(game_id=game.id, target_date=target_date)
             for odds in odds_payload:
                 for leg in odds.get("legs", []):
-                    bet = _upsert_bet(session, game.id, leg)
+                    _upsert_bet(session, game.id, leg)
                     summary["bets"] += 1
         session.flush()
     return summary
@@ -101,5 +105,4 @@ def fetch_edges(min_edge: float = 0.05) -> Iterable[Bet]:
 
     with get_session() as session:
         stmt = select(Bet).where(Bet.edge >= min_edge)
-        for bet in session.scalars(stmt):
-            yield bet
+        yield from session.scalars(stmt)

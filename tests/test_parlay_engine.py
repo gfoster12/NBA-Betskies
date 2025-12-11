@@ -41,7 +41,13 @@ def _player_leg(bet_id: int, player_id: int) -> BetLeg:
 
 def test_build_parlays_basic() -> None:
     legs = [_leg(1), _leg(2), _leg(3)]
-    parlays = engine.build_parlays(legs, slate_date=date.today(), bankroll=1000, max_legs=2, edge_threshold=0.01)
+    parlays = engine.build_parlays(
+        legs,
+        slate_date=date.today(),
+        bankroll=1000,
+        max_legs=2,
+        edge_threshold=0.01,
+    )
     assert parlays
     assert parlays[0].hit_probability <= 1.0
 
@@ -53,5 +59,11 @@ def test_kelly_stake_positive() -> None:
 
 def test_high_correlation_combo_filtered() -> None:
     legs = [_player_leg(1, 42), _player_leg(2, 42)]
-    parlays = engine.build_parlays(legs, slate_date=date.today(), bankroll=1000, max_legs=2, edge_threshold=0.01)
+    parlays = engine.build_parlays(
+        legs,
+        slate_date=date.today(),
+        bankroll=1000,
+        max_legs=2,
+        edge_threshold=0.01,
+    )
     assert not parlays

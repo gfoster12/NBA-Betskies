@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -26,7 +25,7 @@ ARTIFACT_DIR = Path("artifacts")
 ARTIFACT_DIR.mkdir(exist_ok=True)
 
 
-def _prepare_dataset(task: str) -> Tuple[np.ndarray, np.ndarray, StandardScaler]:
+def _prepare_dataset(task: str) -> tuple[np.ndarray, np.ndarray, StandardScaler]:
     if task not in TASK_CONFIG:
         raise ValueError(f"Unknown task '{task}'. Available: {list(TASK_CONFIG)}")
     config = TASK_CONFIG[task]
@@ -53,8 +52,6 @@ def train_task(task: str, epochs: int = 20, lr: float = 1e-3) -> dict:
     X_train_t = torch.tensor(X_train, dtype=torch.float32).to(device)
     y_train_t = torch.tensor(y_train, dtype=torch.float32).to(device)
     X_val_t = torch.tensor(X_val, dtype=torch.float32).to(device)
-    y_val_t = torch.tensor(y_val, dtype=torch.float32).to(device)
-
     model.train()
     for _ in range(epochs):
         optimizer.zero_grad()
@@ -71,16 +68,25 @@ def train_task(task: str, epochs: int = 20, lr: float = 1e-3) -> dict:
         "brier": float(brier_score_loss(y_val, val_preds)),
         "accuracy": float(accuracy_score(y_val, (val_preds > 0.5).astype(int))),
     }
-    metrics_payload = {**metrics, "scaler_path": str(scaler_path), "input_dim": X.shape[1]}
-
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     model_path = ARTIFACT_DIR / f"{task}_{timestamp}.pt"
     scaler_path = ARTIFACT_DIR / f"{task}_scaler_{timestamp}.bin"
     torch.save(model.state_dict(), model_path)
     dump(scaler, scaler_path)
 
+    metrics_payload = {
+        **metrics,
+        "scaler_path": str(scaler_path),
+        "input_dim": X.shape[1],
+    }
+
     with get_session() as session:
-        run = ModelRun(task=task, version=timestamp, metrics=metrics_payload, artifact_path=str(model_path))
+        run = ModelRun(
+            task=task,
+            version=timestamp,
+            metrics=metrics_payload,
+            artifact_path=str(model_path),
+        )
         session.add(run)
 
     return {"model_path": str(model_path), "scaler_path": str(scaler_path), "metrics": metrics}
@@ -88,7 +94,12 @@ def train_task(task: str, epochs: int = 20, lr: float = 1e-3) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train ParlayLab models")
-    parser.add_argument("--task", default="game_outcome", choices=list(VALID_TASKS), help="Task to train")
+    parser.add_argument(
+        "--task",
+        default="game_outcome",
+        choices=list(VALID_TASKS),
+        help="Task to train",
+    )
     parser.add_argument("--epochs", type=int, default=20)
     args = parser.parse_args()
 

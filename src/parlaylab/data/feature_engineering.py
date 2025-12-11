@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 import numpy as np
 import pandas as pd
 from sqlalchemy import select
 
 from parlaylab.db.database import get_session
 from parlaylab.db.models import Game
-
 
 RANKING_FEATURES = ["off_rating", "def_rating", "pace", "rebound_pct", "turnover_pct"]
 PLAYER_PROP_THRESHOLD = 25.0
@@ -19,7 +16,7 @@ PLAYER_PROP_THRESHOLD = 25.0
 def _games_dataframe() -> pd.DataFrame:
     with get_session() as session:
         games = list(session.scalars(select(Game)))
-    rows: List[dict] = []
+    rows: list[dict] = []
     for game in games:
         if game.home_score is None or game.away_score is None:
             continue
@@ -56,7 +53,7 @@ def build_team_rolling_features(window: int = 5) -> pd.DataFrame:
         return df
     df = df.sort_values("date")
     grouped = []
-    for team_id, team_df in df.groupby("team_id"):
+    for _, team_df in df.groupby("team_id"):
         roll = team_df.set_index("date").rolling(window=window, min_periods=1)
         stats = pd.DataFrame(
             {
@@ -66,11 +63,17 @@ def build_team_rolling_features(window: int = 5) -> pd.DataFrame:
                 "is_home": team_df["is_home"],
                 "points_for": team_df["points_for"],
                 "points_against": team_df["points_against"],
-                "off_rating": roll["points_for"].mean() * 100 / roll.count()["points_for"],
-                "def_rating": roll["points_against"].mean() * 100 / roll.count()["points_against"],
+                "off_rating": roll["points_for"].mean()
+                * 100
+                / roll.count()["points_for"],
+                "def_rating": roll["points_against"].mean()
+                * 100
+                / roll.count()["points_against"],
                 "pace": roll["points_for"].mean() + roll["points_against"].mean(),
-                "rebound_pct": roll["points_for"].sum() / (roll["points_for"].sum() + roll["points_against"].sum()),
-                "turnover_pct": 1 - roll["points_for"].mean() / (roll["points_for"].mean() + 1e-6),
+                "rebound_pct": roll["points_for"].sum()
+                / (roll["points_for"].sum() + roll["points_against"].sum()),
+                "turnover_pct": 1
+                - roll["points_for"].mean() / (roll["points_for"].mean() + 1e-6),
                 "is_home_rate": roll["is_home"].mean(),
             }
         ).reset_index(drop=True)
@@ -81,10 +84,10 @@ def build_team_rolling_features(window: int = 5) -> pd.DataFrame:
     return feature_df
 
 
-def summarize_features(feature_df: pd.DataFrame) -> Dict[str, float]:
+def summarize_features(feature_df: pd.DataFrame) -> dict[str, float]:
     """Provide quick descriptive stats for monitoring."""
 
-    summary: Dict[str, float] = {}
+    summary: dict[str, float] = {}
     if feature_df.empty:
         return summary
     for column in feature_df.columns:
@@ -111,13 +114,20 @@ def build_matchup_dataset(window: int = 5) -> pd.DataFrame:
     if matchup.empty:
         return matchup
     matchup["home_win"] = (matchup["points_for_home"] > matchup["points_for_away"]).astype(int)
-    matchup["spread_cover"] = ((matchup["points_for_home"] - matchup["points_against_home"]) > 0).astype(int)
-    matchup["total_over_220"] = ((matchup["points_for_home"] + matchup["points_for_away"]) > 220).astype(int)
+    matchup["spread_cover"] = (
+        (matchup["points_for_home"] - matchup["points_against_home"]) > 0
+    ).astype(int)
+    matchup["total_over_220"] = (
+        (matchup["points_for_home"] + matchup["points_for_away"]) > 220
+    ).astype(int)
     matchup["game_total"] = matchup["points_for_home"] + matchup["points_for_away"]
     return matchup
 
 
-def build_player_prop_dataset(window: int = 5, threshold: float = PLAYER_PROP_THRESHOLD) -> pd.DataFrame:
+def build_player_prop_dataset(
+    window: int = 5,
+    threshold: float = PLAYER_PROP_THRESHOLD,
+) -> pd.DataFrame:
     """Approximate player prop labels from team-level production."""
 
     features = build_team_rolling_features(window)

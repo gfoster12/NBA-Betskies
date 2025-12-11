@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import AnyUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     email_host: str = Field(default="smtp.example.com")
     email_port: int = Field(default=587)
-    email_user: Optional[str] = None
-    email_password: Optional[str] = None
+    email_user: str | None = None
+    email_password: str | None = None
     email_from: str = Field(default="alerts@parlaylab.nba")
 
     admin_password: str = Field(default="change_me")
@@ -35,11 +35,11 @@ class Settings(BaseSettings):
     correlation_penalty_weight: float = Field(default=0.25, ge=0.0, le=1.0)
     scheduler_run_hour: int = Field(default=9, ge=0, le=23)
 
-    slack_webhook_url: Optional[str] = None
+    slack_webhook_url: str | None = None
     notification_mode: Literal["email", "sms", "both"] = "email"
-    twilio_account_sid: Optional[str] = Field(default=None, validation_alias="TWILIO_ACCOUNT_SID")
-    twilio_auth_token: Optional[str] = Field(default=None, validation_alias="TWILIO_AUTH_TOKEN")
-    twilio_from_number: Optional[str] = Field(default=None, validation_alias="TWILIO_FROM_NUMBER")
+    twilio_account_sid: str | None = Field(default=None, validation_alias="TWILIO_ACCOUNT_SID")
+    twilio_auth_token: str | None = Field(default=None, validation_alias="TWILIO_AUTH_TOKEN")
+    twilio_from_number: str | None = Field(default=None, validation_alias="TWILIO_FROM_NUMBER")
     sms_rate_limit_per_minute: int = Field(default=30, ge=0)
 
 
