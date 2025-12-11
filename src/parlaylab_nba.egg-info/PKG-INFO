@@ -82,6 +82,12 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
    ```
    (Documented in `DEPLOYMENT.md` for cron usage.)
 
+### Syncing `requirements.txt`
+Dependencies live in `pyproject.toml`. Whenever you change them, regenerate `requirements.txt` (used by some deploy targets) via:
+```bash
+python scripts/sync_requirements.py --with-extras
+```
+
 ## Tests & Quality
 ```bash
 pytest
