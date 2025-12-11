@@ -8,10 +8,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from parlaylab.config import get_settings
+from parlaylab.db.models import Base
 
 settings = get_settings()
 engine = create_engine(settings.database_url, future=True, echo=False)
 SessionLocal = sessionmaker(bind=engine, class_=Session, expire_on_commit=False, autoflush=False)
+
+
+def init_db() -> None:
+    """Create all database tables if they do not already exist."""
+
+    Base.metadata.create_all(bind=engine)
 
 
 @contextmanager

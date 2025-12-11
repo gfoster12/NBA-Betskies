@@ -12,7 +12,9 @@ from parlaylab.agents.llm_client import explain_parlay
 from parlaylab.agents.marketing_agent import MarketingAgent
 from parlaylab.config import get_settings
 from parlaylab.data.ingestion import fetch_edges
-from parlaylab.db.database import get_session
+from sqlalchemy.exc import OperationalError
+
+from parlaylab.db.database import get_session, init_db
 from parlaylab.db.models import Bet, Subscriber
 from parlaylab.db.models import Parlay as ParlayModel
 from parlaylab.db.models import ParlayLeg as ParlayLegModel
@@ -21,6 +23,7 @@ from parlaylab.parlays.types import BetLeg, ParlayRecommendation
 from parlaylab.scheduling.jobs import run_daily_job
 
 settings = get_settings()
+init_db()
 
 st.set_page_config(page_title="ParlayLab NBA", layout="wide", page_icon="🏀")
 st.title("🏀 ParlayLab NBA")
@@ -29,13 +32,16 @@ st.caption("Model-backed NBA parlay intelligence. Entertainment purposes only.")
 
 @st.cache_data(show_spinner=False)
 def load_flagship_model(target_date: date) -> ParlayModel | None:
-    with get_session() as session:
-        return (
-            session.query(ParlayModel)
-            .filter(ParlayModel.slate_date == target_date)
-            .order_by(ParlayModel.created_at.desc())
-            .first()
-        )
+    try:
+        with get_session() as session:
+            return (
+                session.query(ParlayModel)
+                .filter(ParlayModel.slate_date == target_date)
+                .order_by(ParlayModel.created_at.desc())
+                .first()
+            )
+    except OperationalError:
+        return None
 
 
 def _bet_to_leg(bet: Bet) -> BetLeg:
@@ -90,7 +96,10 @@ def parlay_model_to_rec(model: ParlayModel) -> ParlayRecommendation | None:
 def render_flagship_card(model: ParlayModel | None) -> ParlayRecommendation | None:
     st.subheader("Flagship Parlay")
     if not model:
-        st.info("No flagship parlay is saved for this slate. Build one below.")
+        st.info(
+            "No flagship parlay is available for this date yet. "
+            "Run the daily job or generate a parlay manually."
+        )
         return None
     cols = st.columns(4)
     cols[0].metric("Hit %", f"{model.hit_probability:.1%}")
