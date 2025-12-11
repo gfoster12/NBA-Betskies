@@ -71,15 +71,13 @@ def train_task(task: str, epochs: int = 20, lr: float = 1e-3) -> dict:
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     model_path = ARTIFACT_DIR / f"{task}_{timestamp}.pt"
     scaler_path = ARTIFACT_DIR / f"{task}_scaler_{timestamp}.bin"
-    torch.save(model.state_dict(), model_path)
-    dump(scaler, scaler_path)
-
     metrics_payload = {
         **metrics,
         "scaler_path": str(scaler_path),
         "input_dim": X.shape[1],
     }
-
+    torch.save(model.state_dict(), model_path)
+    dump(scaler, scaler_path)
     with get_session() as session:
         run = ModelRun(
             task=task,
