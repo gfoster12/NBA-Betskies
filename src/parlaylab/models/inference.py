@@ -87,7 +87,7 @@ def predict_player_points_probabilities() -> dict[int, float]:
         return {}
     dataset = dataset.copy()
     dataset["model_prob"] = probs
-    return dict(zip(dataset["team_id"], dataset["model_prob"], strict=False))
+    return dict(zip(dataset["team_id"], dataset["model_prob"]))
 
 
 def predict_team_strengths() -> dict[int, float]:
