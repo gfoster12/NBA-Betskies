@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List
+from collections.abc import Iterable
 
 from parlaylab.notifications.email_backend import EmailBackend
 from parlaylab.notifications.sms_backend import SmsBackend
@@ -39,10 +39,13 @@ class NotificationService:
         )
 
     def send_sms_digest(self, parlay: ParlayRecommendation, phones: Iterable[str]) -> None:
-        body = f"Flagship parlay hit chance {parlay.hit_probability:.1%} | stake ${parlay.suggested_stake:.0f}"
+        body = (
+            f"Flagship parlay hit chance {parlay.hit_probability:.1%} | "
+            f"stake ${parlay.suggested_stake:.0f}"
+        )
         self.sms_backend.send(body=body, recipients=phones)
 
-    def notify_subscribers(self, parlay: ParlayRecommendation, subscribers: List[dict]) -> None:
+    def notify_subscribers(self, parlay: ParlayRecommendation, subscribers: list[dict]) -> None:
         emails = [s["email"] for s in subscribers if s.get("email")]
         phones = [s["phone"] for s in subscribers if s.get("phone")]
         if emails:

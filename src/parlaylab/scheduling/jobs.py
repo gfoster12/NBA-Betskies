@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Dict, List
 
 from sqlalchemy import select
 
@@ -12,7 +11,9 @@ from parlaylab.agents.marketing_agent import MarketingAgent
 from parlaylab.config import get_settings
 from parlaylab.data.ingestion import fetch_edges, sync_daily
 from parlaylab.db.database import get_session
-from parlaylab.db.models import Bet, Parlay as ParlayModel, ParlayLeg as ParlayLegModel, Subscriber
+from parlaylab.db.models import Bet, Subscriber
+from parlaylab.db.models import Parlay as ParlayModel
+from parlaylab.db.models import ParlayLeg as ParlayLegModel
 from parlaylab.notifications.service import NotificationService
 from parlaylab.parlays.engine import build_parlays, flagship_and_alternatives
 from parlaylab.parlays.types import BetLeg, ParlayRecommendation
@@ -56,7 +57,7 @@ def _persist_parlay(rec: ParlayRecommendation) -> None:
             session.add(leg_model)
 
 
-def _load_subscribers() -> List[Dict[str, str]]:
+def _load_subscribers() -> list[dict[str, str]]:
     with get_session() as session:
         stmt = select(Subscriber).where(Subscriber.active.is_(True))
         subscribers = [
@@ -71,7 +72,7 @@ def _load_subscribers() -> List[Dict[str, str]]:
     return subscribers
 
 
-def run_daily_job(target_date: date | None = None) -> Dict[str, int]:
+def run_daily_job(target_date: date | None = None) -> dict[str, int]:
     """Run the full daily workflow: ingest -> recommend -> notify."""
 
     target_date = target_date or date.today()

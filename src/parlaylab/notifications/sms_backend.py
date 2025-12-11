@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from collections import deque
-from typing import Callable, Iterable, Optional
+from collections.abc import Callable, Iterable
 
 from twilio.rest import Client
 
@@ -50,8 +50,8 @@ class SmsBackend:
 
     def __init__(
         self,
-        client: Optional[Client] = None,
-        rate_limiter: Optional[RateLimiter] = None,
+        client: Client | None = None,
+        rate_limiter: RateLimiter | None = None,
     ) -> None:
         self.settings = get_settings()
         self.enabled = bool(
@@ -62,7 +62,7 @@ class SmsBackend:
         self.client = client if client else self._build_client()
         self.rate_limiter = rate_limiter or RateLimiter(self.settings.sms_rate_limit_per_minute)
 
-    def _build_client(self) -> Optional[Client]:
+    def _build_client(self) -> Client | None:
         if not self.enabled:
             return None
         return Client(self.settings.twilio_account_sid, self.settings.twilio_auth_token)
@@ -77,6 +77,10 @@ class SmsBackend:
         for phone in recipients:
             self.rate_limiter.wait_for_slot()
             try:
-                self.client.messages.create(body=body, from_=self.settings.twilio_from_number, to=phone)
+                self.client.messages.create(
+                    body=body,
+                    from_=self.settings.twilio_from_number,
+                    to=phone,
+                )
             except Exception as exc:  # pragma: no cover - network errors
                 logger.error("Failed to send SMS to %s: %s", phone, exc)

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from openai import OpenAI
 
 from parlaylab.config import get_settings
@@ -22,7 +20,7 @@ def _client() -> OpenAI:
     return _client
 
 
-def chat_completion(messages: List[Dict[str, str]], temperature: float = 0.3) -> str:
+def chat_completion(messages: list[dict[str, str]], temperature: float = 0.3) -> str:
     response = _client().chat.completions.create(
         model=settings.openai_model,
         temperature=temperature,
@@ -31,18 +29,22 @@ def chat_completion(messages: List[Dict[str, str]], temperature: float = 0.3) ->
     return response.choices[0].message.content or ""
 
 
-def explain_parlay(parlay: ParlayRecommendation, stats: Dict[str, str]) -> str:
+def explain_parlay(parlay: ParlayRecommendation, stats: dict[str, str]) -> str:
     legs_description = "\n".join(
         f"- {leg.selection} ({leg.market_type}) edge {leg.edge:.1%}" for leg in parlay.legs
     )
     prompt = (
         "Provide a concise explanation of why each leg in the parlay is attractive. "
-        "Reference advanced stats when possible and remind the user that outcomes are not guaranteed."
+        "Reference advanced stats when possible and remind the user that outcomes "
+        "are not guaranteed."
     )
     messages = [
         {
             "role": "system",
-            "content": "You are a careful sports analytics assistant who cites data and avoids guarantees.",
+            "content": (
+                "You are a careful sports analytics assistant who cites data and avoids "
+                "guarantees."
+            ),
         },
         {
             "role": "user",
@@ -52,12 +54,17 @@ def explain_parlay(parlay: ParlayRecommendation, stats: Dict[str, str]) -> str:
     return chat_completion(messages)
 
 
-def generate_ig_caption(parlay: ParlayRecommendation, stats: Dict[str, str], tone: str) -> str:
-    legs_description = " | ".join(f"{leg.selection} ({leg.american_odds:+d})" for leg in parlay.legs)
+def generate_ig_caption(parlay: ParlayRecommendation, stats: dict[str, str], tone: str) -> str:
+    legs_description = " | ".join(
+        f"{leg.selection} ({leg.american_odds:+d})" for leg in parlay.legs
+    )
     messages = [
         {
             "role": "system",
-            "content": "You craft Instagram captions about NBA parlays. Include a responsible gambling note.",
+            "content": (
+                "You craft Instagram captions about NBA parlays. Include a responsible "
+                "gambling note."
+            ),
         },
         {
             "role": "user",

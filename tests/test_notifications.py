@@ -24,7 +24,12 @@ class FakeClock:
 
 def test_rate_limiter_waits_when_limit_exceeded() -> None:
     clock = FakeClock()
-    limiter = sms_backend.RateLimiter(max_events=2, window_seconds=10, time_fn=clock.time, sleep_fn=clock.sleep)
+    limiter = sms_backend.RateLimiter(
+        max_events=2,
+        window_seconds=10,
+        time_fn=clock.time,
+        sleep_fn=clock.sleep,
+    )
     limiter.wait_for_slot()
     clock.now += 1
     limiter.wait_for_slot()
@@ -51,7 +56,13 @@ def test_sms_backend_uses_twilio_client(monkeypatch) -> None:
     )
     monkeypatch.setattr(sms_backend, "get_settings", lambda: settings)
     dummy_client = DummyClient()
-    backend = sms_backend.SmsBackend(client=dummy_client, rate_limiter=sms_backend.RateLimiter(0))
+    backend = sms_backend.SmsBackend(
+        client=dummy_client,
+        rate_limiter=sms_backend.RateLimiter(0),
+    )
     backend.send("hi", ["+1", "+2"])
     assert len(dummy_client.sent) == 2
-    assert all(msg["from_"] == settings.twilio_from_number for msg in dummy_client.sent)
+    assert all(
+        msg["from_"] == settings.twilio_from_number
+        for msg in dummy_client.sent
+    )

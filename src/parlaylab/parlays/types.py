@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
-from typing import List
 
 
 @dataclass
@@ -27,7 +26,7 @@ class BetLeg:
 class ParlayRecommendation:
     name: str
     slate_date: date
-    legs: List[BetLeg]
+    legs: list[BetLeg]
     total_odds: float
     hit_probability: float
     expected_value: float

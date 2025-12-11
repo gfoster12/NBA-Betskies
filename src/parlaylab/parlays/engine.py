@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import itertools
+from collections.abc import Iterable
 from datetime import date
-from typing import Iterable, List
 
 from parlaylab.config import get_settings
 from parlaylab.parlays.types import BetLeg, ParlayRecommendation
-
 
 settings = get_settings()
 
@@ -56,7 +55,7 @@ def pairwise_correlation(a: BetLeg, b: BetLeg) -> float:
     return min(score, 1.0)
 
 
-def combination_correlation_score(legs: List[BetLeg]) -> float:
+def combination_correlation_score(legs: list[BetLeg]) -> float:
     score = 0.0
     for leg_a, leg_b in itertools.combinations(legs, 2):
         score += pairwise_correlation(leg_a, leg_b)
@@ -76,14 +75,14 @@ def build_parlays(
     top_n_bets: int = 12,
     kelly_fraction: float = settings.kelly_fraction,
     edge_threshold: float = settings.edge_threshold,
-) -> List[ParlayRecommendation]:
+) -> list[ParlayRecommendation]:
     """Generate ranked parlay recommendations."""
 
     filtered = [bet for bet in bets if bet.edge >= edge_threshold]
     filtered.sort(key=lambda b: b.edge, reverse=True)
     filtered = filtered[:top_n_bets]
 
-    parlays: List[ParlayRecommendation] = []
+    parlays: list[ParlayRecommendation] = []
     for r in range(2, max_legs + 1):
         for combo in itertools.combinations(filtered, r):
             legs = list(combo)
@@ -114,7 +113,9 @@ def build_parlays(
     return parlays
 
 
-def flagship_and_alternatives(parlays: List[ParlayRecommendation]) -> tuple[ParlayRecommendation | None, List[ParlayRecommendation]]:
+def flagship_and_alternatives(
+    parlays: list[ParlayRecommendation],
+) -> tuple[ParlayRecommendation | None, list[ParlayRecommendation]]:
     if not parlays:
         return None, []
     flagship = parlays[0]

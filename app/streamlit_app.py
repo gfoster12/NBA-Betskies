@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import date
-from typing import Iterable, List, Sequence
 
 import pandas as pd
 import streamlit as st
@@ -13,7 +13,9 @@ from parlaylab.agents.marketing_agent import MarketingAgent
 from parlaylab.config import get_settings
 from parlaylab.data.ingestion import fetch_edges
 from parlaylab.db.database import get_session
-from parlaylab.db.models import Bet, Parlay as ParlayModel, ParlayLeg as ParlayLegModel, Subscriber
+from parlaylab.db.models import Bet, Subscriber
+from parlaylab.db.models import Parlay as ParlayModel
+from parlaylab.db.models import ParlayLeg as ParlayLegModel
 from parlaylab.parlays.engine import build_parlays, flagship_and_alternatives
 from parlaylab.parlays.types import BetLeg, ParlayRecommendation
 from parlaylab.scheduling.jobs import run_daily_job
@@ -54,7 +56,7 @@ def _bet_to_leg(bet: Bet) -> BetLeg:
 
 
 @st.cache_data(show_spinner=False)
-def load_bet_legs(edge_threshold: float) -> List[BetLeg]:
+def load_bet_legs(edge_threshold: float) -> list[BetLeg]:
     return [_bet_to_leg(bet) for bet in fetch_edges(edge_threshold)]
 
 
@@ -129,7 +131,7 @@ def render_parlay_builder(
     bankroll: float,
     risk: float,
     max_legs: int,
-) -> tuple[ParlayRecommendation | None, List[ParlayRecommendation]]:
+) -> tuple[ParlayRecommendation | None, list[ParlayRecommendation]]:
     st.subheader("Interactive Parlay Builder")
     if not bet_pool:
         st.warning("No +EV legs available. Train models and sync data first.")
@@ -197,7 +199,12 @@ def render_subscriber_form(admin_mode: bool) -> None:
         name = st.text_input("Name")
         email = st.text_input("Email *")
         phone = st.text_input("Phone")
-        bankroll_pref = st.number_input("Daily bankroll preference", value=50.0, min_value=0.0, step=10.0)
+        bankroll_pref = st.number_input(
+            "Daily bankroll preference",
+            value=50.0,
+            min_value=0.0,
+            step=10.0,
+        )
         submitted = st.form_submit_button("Add subscriber")
 
     if submitted:
@@ -205,7 +212,12 @@ def render_subscriber_form(admin_mode: bool) -> None:
             st.error("Email is required.")
         else:
             with get_session() as session:
-                subscriber = Subscriber(name=name, email=email, phone=phone, bankroll_pref=bankroll_pref)
+                subscriber = Subscriber(
+                    name=name,
+                    email=email,
+                    phone=phone,
+                    bankroll_pref=bankroll_pref,
+                )
                 session.add(subscriber)
             st.success("Subscriber added.")
 
@@ -231,7 +243,12 @@ def render_subscriber_form(admin_mode: bool) -> None:
 # ----- Sidebar Controls -------------------------------------------------------
 with st.sidebar:
     slate_date = st.date_input("Slate date", value=date.today())
-    bankroll = st.number_input("Bankroll ($)", value=settings.default_bankroll, min_value=100.0, step=50.0)
+    bankroll = st.number_input(
+        "Bankroll ($)",
+        value=settings.default_bankroll,
+        min_value=100.0,
+        step=50.0,
+    )
     risk = st.slider("Risk appetite", 0.1, 1.0, 0.5, help="Higher risk → larger Kelly fraction")
     max_legs = st.slider("Max parlay legs", 2, 5, 3)
     admin_password = st.text_input("Admin password", type="password")
@@ -251,7 +268,13 @@ with col_main:
 
 with col_right:
     bet_pool = load_bet_legs(settings.edge_threshold)
-    generated_flagship, alternatives = render_parlay_builder(bet_pool, slate_date, bankroll, risk, max_legs)
+    generated_flagship, alternatives = render_parlay_builder(
+        bet_pool,
+        slate_date,
+        bankroll,
+        risk,
+        max_legs,
+    )
     render_marketing_agent(flagship_rec or generated_flagship, bankroll)
 
 render_subscriber_form(admin_mode)

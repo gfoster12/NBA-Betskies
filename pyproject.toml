@@ -39,10 +39,6 @@ dev = [
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.ruff]
-line-length = 100
-select = ["E", "F", "B", "I", "UP", "N"]
-
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]

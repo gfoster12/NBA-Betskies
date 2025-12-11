@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -37,9 +36,9 @@ class GameSchema(BaseModel):
 
 class InjurySchema(BaseModel):
     player_id: int
-    description: Optional[str]
-    status: Optional[str]
-    last_updated: Optional[datetime]
+    description: str | None
+    status: str | None
+    last_updated: datetime | None
 
 
 class OddsLegSchema(BaseModel):
@@ -60,7 +59,7 @@ class OddsLegSchema(BaseModel):
 class BettingOddsSchema(BaseModel):
     game_id: int
     date: date
-    legs: List[OddsLegSchema]
+    legs: list[OddsLegSchema]
 
 
 class RollingFeatureSet(BaseModel):

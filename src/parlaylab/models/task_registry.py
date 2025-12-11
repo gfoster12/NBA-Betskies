@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -37,11 +37,27 @@ class TaskConfig:
     feature_fn: Callable[[pd.DataFrame], np.ndarray]
 
 
-TASK_CONFIG: Dict[str, TaskConfig] = {
-    "game_outcome": TaskConfig(target="home_win", builder=build_matchup_dataset, feature_fn=matchup_feature_matrix),
-    "spread_cover": TaskConfig(target="spread_cover", builder=build_matchup_dataset, feature_fn=matchup_feature_matrix),
-    "total_points": TaskConfig(target="total_over_220", builder=build_matchup_dataset, feature_fn=matchup_feature_matrix),
-    "player_points": TaskConfig(target="player_points_over", builder=build_player_prop_dataset, feature_fn=player_feature_matrix),
+TASK_CONFIG: dict[str, TaskConfig] = {
+    "game_outcome": TaskConfig(
+        target="home_win",
+        builder=build_matchup_dataset,
+        feature_fn=matchup_feature_matrix,
+    ),
+    "spread_cover": TaskConfig(
+        target="spread_cover",
+        builder=build_matchup_dataset,
+        feature_fn=matchup_feature_matrix,
+    ),
+    "total_points": TaskConfig(
+        target="total_over_220",
+        builder=build_matchup_dataset,
+        feature_fn=matchup_feature_matrix,
+    ),
+    "player_points": TaskConfig(
+        target="player_points_over",
+        builder=build_player_prop_dataset,
+        feature_fn=player_feature_matrix,
+    ),
 }
 
-VALID_TASKS: Tuple[str, ...] = tuple(TASK_CONFIG.keys())
+VALID_TASKS: tuple[str, ...] = tuple(TASK_CONFIG.keys())

@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Dict
-
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import accuracy_score, brier_score_loss, log_loss, roc_auc_score
 
 
-def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
     """Return a dictionary of common classification metrics."""
 
     return {
@@ -21,7 +19,11 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
     }
 
 
-def calibration_table(y_true: np.ndarray, y_pred: np.ndarray, n_bins: int = 10) -> Dict[str, list[float]]:
+def calibration_table(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    n_bins: int = 10,
+) -> dict[str, list[float]]:
     prob_true, prob_pred = calibration_curve(y_true, y_pred, n_bins=n_bins, strategy="uniform")
     return {"prob_true": prob_true.tolist(), "prob_pred": prob_pred.tolist()}
 
