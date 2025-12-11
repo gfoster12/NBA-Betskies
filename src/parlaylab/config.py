@@ -1,5 +1,8 @@
-"""Application configuration using Pydantic settings."""
+"""Environment-driven configuration helpers for ParlayLab NBA."""
 
+from __future__ import annotations
+
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -48,3 +51,45 @@ def get_settings() -> Settings:
     """Return cached application settings."""
 
     return Settings()  # type: ignore[call-arg]
+
+
+def get_balldontlie_api_key() -> str:
+    """Return the BALLDONTLIE API key or raise a helpful error."""
+
+    key = os.getenv("BALLDONTLIE_API_KEY") or get_settings().balldontlie_api_key
+    if not key:
+        raise RuntimeError(
+            "BALLDONTLIE_API_KEY is not configured. Set it in .env for local dev or as a GitHub secret."
+        )
+    return key
+
+
+def get_openai_api_key() -> str:
+    """Return the OpenAI API key or raise a helpful error."""
+
+    key = os.getenv("OPENAI_API_KEY") or get_settings().openai_api_key
+    if not key:
+        raise RuntimeError(
+            "OPENAI_API_KEY is not configured. Set it in .env for local dev or as a GitHub secret."
+        )
+    return key
+
+
+def get_email_settings() -> dict[str, str | int | None]:
+    settings = get_settings()
+    return {
+        "host": settings.email_host,
+        "port": settings.email_port,
+        "user": settings.email_user,
+        "password": settings.email_password,
+        "from": settings.email_from,
+    }
+
+
+def get_twilio_settings() -> dict[str, str | None]:
+    settings = get_settings()
+    return {
+        "account_sid": settings.twilio_account_sid,
+        "auth_token": settings.twilio_auth_token,
+        "from_number": settings.twilio_from_number,
+    }
