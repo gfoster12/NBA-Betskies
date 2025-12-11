@@ -53,10 +53,10 @@ def _run_task(task: str) -> tuple[pd.DataFrame, np.ndarray]:
     if dataset.empty:
         return dataset, np.array([])
     model, scaler = load_model(task)
-    X = config.feature_fn(dataset)
-    X_scaled = scaler.transform(X)
+    x = config.feature_fn(dataset)
+    x_scaled = scaler.transform(x)
     with torch.no_grad():
-        probs = model(torch.tensor(X_scaled, dtype=torch.float32)).numpy()
+        probs = model(torch.tensor(x_scaled, dtype=torch.float32)).numpy()
     return dataset, probs
 
 
@@ -87,7 +87,7 @@ def predict_player_points_probabilities() -> dict[int, float]:
         return {}
     dataset = dataset.copy()
     dataset["model_prob"] = probs
-    return dict(zip(dataset["team_id"], dataset["model_prob"]))
+    return dict(zip(dataset["team_id"], dataset["model_prob"], strict=False))
 
 
 def predict_team_strengths() -> dict[int, float]:
