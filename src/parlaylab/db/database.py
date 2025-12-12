@@ -5,27 +5,16 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from parlaylab.config import get_settings
-from parlaylab.db.models import Base
 
 settings = get_settings()
 engine = create_engine(settings.database_url, future=True, echo=False)
 SessionLocal = sessionmaker(bind=engine, class_=Session, expire_on_commit=False, autoflush=False)
 
-__all__ = ["engine", "SessionLocal", "get_session", "init_db"]
-
-
-def init_db() -> None:
-    """Create all database tables if they do not already exist."""
-
-    import parlaylab.db.models  # noqa: F401 - ensure model registration
-
-    Base.metadata.create_all(bind=engine)
-    inspector = inspect(engine)
-    print("DB init, tables:", inspector.get_table_names())
+__all__ = ["engine", "SessionLocal", "get_session"]
 
 
 @contextmanager
@@ -42,12 +31,3 @@ def get_session() -> Iterator[Session]:
     finally:
         session.close()
 
-def init_db() -> None:
-    """
-    Create all database tables if they do not already exist.
-
-    This imports parlaylab.db.models to ensure all ORM models
-    are registered on Base.metadata before create_all() is called.
-    """
-
-    Base.metadata.create_all(bind=engine)

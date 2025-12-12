@@ -14,17 +14,10 @@ from sqlalchemy.orm import Session
 from parlaylab.api.schemas import ParlayLeg, ParlayResponse, StatsResponse
 from parlaylab.config import get_api_access_key, get_settings
 from parlaylab.data.ingestion import fetch_edges, sync_daily
-from parlaylab.db.database import SessionLocal, get_session
-from parlaylab.db.models import (
-    Bet,
-    ModelRun,
-)
-from parlaylab.db.models import (
-    Parlay as ParlayModel,
-)
-from parlaylab.db.models import (
-    ParlayLeg as ParlayLegModel,
-)
+from parlaylab.db.database import SessionLocal, engine, get_session
+from parlaylab.db.models import Bet, ModelRun
+from parlaylab.db.models import Parlay as ParlayModel
+from parlaylab.db.models import ParlayLeg as ParlayLegModel
 from parlaylab.parlays.engine import build_parlays, flagship_and_alternatives
 from parlaylab.parlays.types import BetLeg, ParlayRecommendation
 from parlaylab.scheduling.jobs import run_daily_job
@@ -57,6 +50,13 @@ def require_api_key(x_api_key: str | None = Header(default=None, alias="X-API-Ke
     expected = get_api_access_key()
     if not x_api_key or x_api_key != expected:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key")
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    from parlaylab.db.models import Base
+
+    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/health")
