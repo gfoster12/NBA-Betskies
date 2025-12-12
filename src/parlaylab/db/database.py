@@ -36,6 +36,5 @@ def init_db() -> None:
     This imports parlaylab.db.models to ensure all ORM models
     are registered on Base.metadata before create_all() is called.
     """
-    import parlaylab.db.models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
