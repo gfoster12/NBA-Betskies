@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 from tenacity import RetryCallState, retry, stop_after_attempt, wait_fixed
 
-from parlaylab.config import get_settings
+from parlaylab.config import get_balldontlie_api_key
 
 BASE_URL = "https://api.balldontlie.io"
 
@@ -24,10 +24,7 @@ class BallDontLieClient:
     """Convenient wrapper for the BALDONTLIE API."""
 
     def __init__(self, api_key: str | None = None, base_url: str = BASE_URL) -> None:
-        settings = get_settings()
-        self.api_key = api_key or settings.balldontlie_api_key
-        if not self.api_key:
-            raise RuntimeError("BALLDONTLIE_API_KEY is not configured.")
+        self.api_key = api_key or get_balldontlie_api_key()
         self.base_url = base_url.rstrip("/")
         self._client = httpx.Client(timeout=30.0, headers={"Authorization": self.api_key})
 

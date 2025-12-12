@@ -15,8 +15,6 @@ dependencies = [
     "alembic>=1.13",
     "scikit-learn>=1.5",
     "torch>=2.2",
-    "streamlit>=1.39",
-    "openai>=1.12",
     "twilio>=9.2",
     "python-dotenv>=1.0",
     "matplotlib>=3.8",
@@ -25,6 +23,8 @@ dependencies = [
     "tabulate>=0.9",
     "email-validator>=2.1",
     "tenacity>=8.2",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.23",
 ]
 
 [project.optional-dependencies]

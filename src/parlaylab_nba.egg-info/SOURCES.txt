@@ -2,9 +2,6 @@ README.md
 pyproject.toml
 src/parlaylab/__init__.py
 src/parlaylab/config.py
-src/parlaylab/agents/__init__.py
-src/parlaylab/agents/llm_client.py
-src/parlaylab/agents/marketing_agent.py
 src/parlaylab/data/__init__.py
 src/parlaylab/data/balldontlie_client.py
 src/parlaylab/data/feature_engineering.py
@@ -34,6 +31,5 @@ src/parlaylab_nba.egg-info/dependency_links.txt
 src/parlaylab_nba.egg-info/requires.txt
 src/parlaylab_nba.egg-info/top_level.txt
 tests/test_feature_engineering.py
-tests/test_llm_agent.py
 tests/test_notifications.py
 tests/test_parlay_engine.py
