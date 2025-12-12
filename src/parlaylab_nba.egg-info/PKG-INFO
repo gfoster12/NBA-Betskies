@@ -22,6 +22,8 @@ Requires-Dist: schedule>=1.2
 Requires-Dist: tabulate>=0.9
 Requires-Dist: email-validator>=2.1
 Requires-Dist: tenacity>=8.2
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn[standard]>=0.23
 Provides-Extra: dev
 Requires-Dist: pytest>=7.4; extra == "dev"
 Requires-Dist: pytest-mock>=3.12; extra == "dev"
@@ -30,7 +32,7 @@ Requires-Dist: ruff>=0.4; extra == "dev"
 
 # ParlayLab NBA
 
-ParlayLab NBA is a backend-focused sports analytics platform that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and distributes daily picks via notifications and API integrations.
+ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and distributes daily picks via Streamlit dashboards, notifications, and marketing content powered by GPT-5.1.
 
 > **Responsible gaming:** This is an analytics tool for educational/entertainment use. Wager only what you can afford to lose and follow local laws (18+).
 
@@ -69,7 +71,8 @@ ParlayLab NBA is a backend-focused sports analytics platform that ingests BALLDO
    ```
 6. **Run the API server**
    ```bash
-   python -m parlaylab.api.main  # wraps uvicorn parlaylab.api.server:app
+   python -m parlaylab.api.main
+   # equivalent: uvicorn parlaylab.api.server:app --host 0.0.0.0 --port 8000
    ```
 7. **Daily job (scheduler/cron)**
    ```bash
@@ -102,6 +105,7 @@ Settings live in `parlaylab/config.py` (Pydantic). Key knobs:
 - `MAX_CORRELATION_SCORE`, `CORRELATION_PENALTY_WEIGHT` for overlap penalties.
 - Notification mode + SMTP credentials.
 - Twilio SMS keys (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`) + `SMS_RATE_LIMIT_PER_MINUTE`.
+- `PARLAYLAB_API_KEY` for securing the FastAPI endpoints (use the `X-API-Key` header).
 - Database URL (SQLite default, Postgres-ready).
 
 Refer to the docs for extensibility ideas such as richer correlation modeling, additional prop markets, or production notification providers (Twilio, SES, etc.).

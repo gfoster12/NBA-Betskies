@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
 
@@ -10,6 +11,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from parlaylab.config import get_settings
 from parlaylab.db.models import Base
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 engine = create_engine(settings.database_url, future=True, echo=False)
@@ -25,7 +28,7 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     inspector = inspect(engine)
-    print("DB init, tables:", inspector.get_table_names())
+    logger.info("DB init, tables: %s", inspector.get_table_names())
 
 
 @contextmanager
@@ -41,13 +44,3 @@ def get_session() -> Iterator[Session]:
         raise
     finally:
         session.close()
-
-def init_db() -> None:
-    """
-    Create all database tables if they do not already exist.
-
-    This imports parlaylab.db.models to ensure all ORM models
-    are registered on Base.metadata before create_all() is called.
-    """
-
-    Base.metadata.create_all(bind=engine)
