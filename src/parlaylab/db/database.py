@@ -41,3 +41,13 @@ def get_session() -> Iterator[Session]:
         raise
     finally:
         session.close()
+
+def init_db() -> None:
+    """
+    Create all database tables if they do not already exist.
+
+    This imports parlaylab.db.models to ensure all ORM models
+    are registered on Base.metadata before create_all() is called.
+    """
+
+    Base.metadata.create_all(bind=engine)
