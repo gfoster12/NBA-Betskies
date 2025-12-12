@@ -6,9 +6,9 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from parlaylab.db.models import Base
 
 from parlaylab.config import get_settings
+from parlaylab.db.models import Base
 
 settings = get_settings()
 engine = create_engine(settings.database_url, future=True, echo=False)
