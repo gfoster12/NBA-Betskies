@@ -71,7 +71,7 @@ def get_email_settings() -> dict[str, str | int | None]:
         "port": settings.email_port,
         "user": settings.email_user,
         "password": settings.email_password,
-        "from": settings.email_from,
+        "from_address": settings.email_from,
     }
 
 
