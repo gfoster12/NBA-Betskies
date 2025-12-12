@@ -87,10 +87,10 @@ def version(session: SessionDep) -> dict[str, Any]:
 
 class GenerateParlayRequest(BaseModel):
     slate_date: date
-    max_legs: int = 5
+    max_legs: int = Field(default=5, ge=2, le=10)
     min_edge: float = 0.03
     risk_level: str = Field(default="balanced", regex="^(conservative|balanced|aggressive)$")
-    bankroll: float = 1000.0
+    bankroll: float = Field(default=1000.0, gt=0)
 
 
 @app.post("/generate_parlay", response_model=ParlayResponse)
