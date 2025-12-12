@@ -30,4 +30,4 @@ python scripts/export_openapi.py
 The schema is written to `api_spec/openapi.json`. If you have a public base URL, set `PUBLIC_API_BASE_URL=https://api.yourdomain.com` before running the script so the generated schema advertises the correct server.
 
 ## CI/CD
-The GitHub Actions workflow installs dependencies, runs `ruff`, and executes the unit tests. Ensure `PARLAYLAB_API_KEY` and `BALLDTO...` secrets are configured under Settings → Secrets → Actions.
+The GitHub Actions workflow installs dependencies, runs `ruff`, and executes the unit tests. Ensure `PARLAYLAB_API_KEY` and `BALLDONTLIE_API_KEY` secrets are configured under Settings → Secrets → Actions.
