@@ -9,6 +9,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     env:
+      PARLAYLAB_API_KEY: ${{ secrets.PARLAYLAB_API_KEY }}
       BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
       EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
       EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
