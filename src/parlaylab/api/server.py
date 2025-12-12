@@ -71,9 +71,9 @@ def _latest_model_version(session: Session) -> str | None:
 
 SessionDep = Annotated[Session, Depends(get_db)]
 APIKeyDep = Annotated[None, Depends(require_api_key)]
-DateQuery = Annotated[date | None, Query(default=None)]
-LimitQuery = Annotated[int, Query(default=10, ge=1, le=50)]
-WindowQuery = Annotated[int, Query(default=30, ge=1, le=365)]
+DateQuery = Annotated[date | None, Query()]
+LimitQuery = Annotated[int, Query(ge=1, le=50)]
+WindowQuery = Annotated[int, Query(ge=1, le=365)]
 
 
 @app.get("/version")
@@ -89,7 +89,7 @@ class GenerateParlayRequest(BaseModel):
     slate_date: date
     max_legs: int = Field(default=5, ge=2, le=10)
     min_edge: float = 0.03
-    risk_level: str = Field(default="balanced", regex="^(conservative|balanced|aggressive)$")
+    risk_level: str = Field(default="balanced", pattern="^(conservative|balanced|aggressive)$")
     bankroll: float = Field(default=1000.0, gt=0)
 
 
@@ -131,10 +131,10 @@ def generate_parlay(
 
 @app.get("/parlays", response_model=list[ParlayResponse])
 def list_parlays(
-    slate_date: DateQuery,
-    limit: LimitQuery,
     _: APIKeyDep,
     session: SessionDep,
+    slate_date: DateQuery = None,
+    limit: LimitQuery = 10,
 ) -> list[ParlayResponse]:
     stmt = select(ParlayModel).order_by(
         ParlayModel.slate_date.desc(),
@@ -149,9 +149,9 @@ def list_parlays(
 
 @app.get("/stats", response_model=StatsResponse)
 def stats(
-    window_days: WindowQuery,
     _: APIKeyDep,
     session: SessionDep,
+    window_days: WindowQuery = 30,
 ) -> StatsResponse:
     window_start = datetime.utcnow() - timedelta(days=window_days)
     stmt = select(ParlayModel).where(ParlayModel.created_at >= window_start)

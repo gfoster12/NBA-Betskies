@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
 
 from pydantic import AnyUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -21,12 +20,6 @@ class Settings(BaseSettings):
 
     balldontlie_api_key: str = Field(default="", validation_alias="BALLDONTLIE_API_KEY")
 
-    email_host: str = Field(default="smtp.example.com")
-    email_port: int = Field(default=587)
-    email_user: str | None = None
-    email_password: str | None = None
-    email_from: str = Field(default="alerts@parlaylab.nba")
-
     admin_password: str = Field(default="change_me")
 
     default_bankroll: float = Field(default=1000.0)
@@ -36,12 +29,6 @@ class Settings(BaseSettings):
     correlation_penalty_weight: float = Field(default=0.25, ge=0.0, le=1.0)
     scheduler_run_hour: int = Field(default=9, ge=0, le=23)
 
-    slack_webhook_url: str | None = None
-    notification_mode: Literal["email", "sms", "both"] = "email"
-    twilio_account_sid: str | None = Field(default=None, validation_alias="TWILIO_ACCOUNT_SID")
-    twilio_auth_token: str | None = Field(default=None, validation_alias="TWILIO_AUTH_TOKEN")
-    twilio_from_number: str | None = Field(default=None, validation_alias="TWILIO_FROM_NUMBER")
-    sms_rate_limit_per_minute: int = Field(default=30, ge=0)
     parlaylab_api_key: str = Field(default="", validation_alias="PARLAYLAB_API_KEY")
 
 
@@ -62,26 +49,6 @@ def get_balldontlie_api_key() -> str:
             "Set it in .env for local dev or as a GitHub secret."
         )
     return key
-
-
-def get_email_settings() -> dict[str, str | int | None]:
-    settings = get_settings()
-    return {
-        "host": settings.email_host,
-        "port": settings.email_port,
-        "user": settings.email_user,
-        "password": settings.email_password,
-        "from_address": settings.email_from,
-    }
-
-
-def get_twilio_settings() -> dict[str, str | None]:
-    settings = get_settings()
-    return {
-        "account_sid": settings.twilio_account_sid,
-        "auth_token": settings.twilio_auth_token,
-        "from_number": settings.twilio_from_number,
-    }
 
 
 def get_api_access_key() -> str:

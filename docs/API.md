@@ -39,7 +39,7 @@ Returns historical summary: total parlays, win rate placeholder, ROI based on ex
 
 ### `POST /run_daily_job` *(auth required)*
 Body: `{ "target_date": "2024-12-01" }` (optional).
-Triggers the existing ingestion → inference → parlay notification pipeline. Returns JSON summary.
+Triggers ingestion → inference → flagship parlay persistence and returns JSON stats.
 
 ## Example usage
 ```bash

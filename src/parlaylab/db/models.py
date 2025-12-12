@@ -89,7 +89,7 @@ class ParlayLeg(Base):
 
 
 class Subscriber(Base):
-    """Subscriber info for notifications."""
+    """Subscriber info retained for future outbound channels."""
 
     __tablename__ = "subscribers"
 

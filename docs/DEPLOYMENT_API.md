@@ -5,7 +5,7 @@ The backend is a standard FastAPI application and can run anywhere that supports
 ## Required environment variables
 - `PARLAYLAB_API_KEY` – used to authenticate API calls (X-API-Key header)
 - `BALLDONTLIE_API_KEY` – access token for the BallDontLie GOAT API
-- Optional: `DATABASE_URL`, `EMAIL_*`, `TWILIO_*`, `SCHEDULER_*`, etc.
+- Optional: `DATABASE_URL`, tuning knobs (`EDGE_THRESHOLD`, etc.)
 
 ## Running locally
 ```bash

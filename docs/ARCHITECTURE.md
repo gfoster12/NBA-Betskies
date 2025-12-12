@@ -18,8 +18,7 @@ ParlayLab NBA is split into cohesive layers that can be independently iterated:
    - `engine.py` converts +EV bets into correlation-safe parlays, evaluates payout/EV, and applies fractional Kelly staking.
 
 4. **Delivery + automation**
-   - `notifications/` implements SMTP + SMS stubs behind a `NotificationService`.
-   - `scheduling/jobs.py` ties ingestion → inference → parlay selection → notifications for cron-style execution.
+   - `scheduling/jobs.py` ties ingestion → inference → parlay selection for cron-style execution.
 
 5. **API layer (`parlaylab.api`)**
    - FastAPI routes expose parlay generation, health checks, and stats for GPT Actions.
@@ -36,7 +35,7 @@ BALLDONTLIE API → ingestion → SQLite (via SQLAlchemy models)
                     ↓
              parlay engine (EV + Kelly)
                     ↓
-            API responses / Notifications
+            API responses / persistence
 ```
 
 Each component is designed behind clean abstractions, enabling future swaps (e.g., Postgres, more advanced neural nets, third-party SMS gateways) without disrupting other layers.

@@ -1,6 +1,6 @@
 # ParlayLab NBA
 
-ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and distributes daily picks via Streamlit dashboards, notifications, and marketing content powered by GPT-5.1.
+ParlayLab NBA is an analytics-first backend that ingests BALLDONTLIE GOAT data, trains probabilistic models, constructs +EV parlays, and exposes JSON endpoints suitable for GPT Actions and downstream automations.
 
 > **Responsible gaming:** This is an analytics tool for educational/entertainment use. Wager only what you can afford to lose and follow local laws (18+).
 
@@ -9,7 +9,6 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
 - Hybrid ML stack (PyTorch tabular MLP + scikit-learn utilities) with daily retraining hooks, metrics logging, and artifact persistence across moneyline/spread/total/player-prop tasks.
 - Parlay engine with correlation filters, EV + fractional Kelly bankroll sizing, and flagship/alternative outputs.
 - FastAPI backend exposing health, parlay generation, and stats endpoints (ready for GPT Actions).
-- Notification layer with SMTP email + Twilio SMS (rate limited) plus documented cron-style scheduler.
 - Tests, docs, GitHub Actions CI, and typed config.
 
 ## Quickstart
@@ -21,7 +20,8 @@ ParlayLab NBA is a full-stack sports analytics platform that ingests BALLDONTLIE
    ```
 2. **Environment variables** – copy `.env.example` to `.env` and fill in:
    - `BALLDONTLIE_API_KEY` *(GOAT subscription; never commit this value)*
-   - SMTP settings (`EMAIL_*`), `ADMIN_PASSWORD`, `DATABASE_URL`, etc.
+   - `PARLAYLAB_API_KEY` (protects FastAPI endpoints; X-API-Key)
+   - `DATABASE_URL` (optional; defaults to local SQLite)
 3. **Initialize DB**
    ```bash
    python -c "from parlaylab.db.models import Base; from parlaylab.db.database import engine; Base.metadata.create_all(engine)"
@@ -71,9 +71,7 @@ GitHub Actions workflow (`.github/workflows/tests.yml`) installs dependencies an
 Settings live in `parlaylab/config.py` (Pydantic). Key knobs:
 - `EDGE_THRESHOLD`, `KELLY_FRACTION`, `DEFAULT_BANKROLL`, `SCHEDULER_RUN_HOUR`.
 - `MAX_CORRELATION_SCORE`, `CORRELATION_PENALTY_WEIGHT` for overlap penalties.
-- Notification mode + SMTP credentials.
-- Twilio SMS keys (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`) + `SMS_RATE_LIMIT_PER_MINUTE`.
 - `PARLAYLAB_API_KEY` for securing the FastAPI endpoints (use the `X-API-Key` header).
 - Database URL (SQLite default, Postgres-ready).
 
-Refer to the docs for extensibility ideas such as richer correlation modeling, additional prop markets, or production notification providers (Twilio, SES, etc.).
+Refer to the docs for extensibility ideas such as richer correlation modeling or additional prop markets.
